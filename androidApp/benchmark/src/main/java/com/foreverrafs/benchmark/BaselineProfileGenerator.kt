@@ -4,9 +4,15 @@
 package com.foreverrafs.benchmark
 
 import androidx.benchmark.macro.junit4.BaselineProfileRule
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.filters.LargeTest
+import com.foreverrafs.benchmark.AppScenarios.mainNavigationItems
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
 
+@RunWith(AndroidJUnit4::class)
+@LargeTest
 class BaselineProfileGenerator {
 
     @get:Rule
@@ -21,7 +27,7 @@ class BaselineProfileGenerator {
             startActivityAndWait()
 
             //  Run through the main navigation items
-            AppScenarios.mainNavigationItems(device)
+            mainNavigationItems(device)
         }
     }
 }

@@ -15,6 +15,7 @@ plugins {
     alias(libs.plugins.ktlint)
     id("com.superdiary.ktlint")
     id("com.superdiary.githooks")
+    alias(libs.plugins.androidx.baselineprofile) apply false
 }
 
 buildscript {

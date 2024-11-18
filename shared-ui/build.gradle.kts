@@ -182,22 +182,19 @@ tasks.named("iosArm64ResolveResourcesFromDependencies") {
         }
     }
 }
-dependencies {
-    testImplementation(project(":shared-data"))
-}
 
 tasks.register("createPaparazziReportComment") {
     doLast {
         val reportDirectory = layout.buildDirectory.dir("paparazzi/failures").get().toString()
         val deltaFiles = File(reportDirectory)
             .listFiles()
-            .filter { it.name.startsWith("delta") }
+            ?.filter { it.name.startsWith("delta") }
 
         val pullRequestNumber = System.getenv("BUILD_NUMBER")
 
         val outputFilePath = "snapshots.md"
         val outputFile = FileOutputStream(outputFilePath)
-        deltaFiles.forEach { image ->
+        deltaFiles?.forEach { image ->
             val filePath = image
                 .name
                 .toString()

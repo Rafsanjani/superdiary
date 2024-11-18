@@ -351,7 +351,7 @@ private fun LatestEntries(
                     inSelectionMode = false,
                     modifier = Modifier
                         .clickable(onClick = { onDiaryClick(diary) })
-                        .testTag("diary_list_item_$index"),
+                        .testTag("diary_item_$index"),
                     onToggleFavorite = { onToggleFavorite(diary) },
                 )
             }

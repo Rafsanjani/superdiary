@@ -1,5 +1,8 @@
 @file:Suppress("UnusedPrivateProperty")
 
+import com.android.build.api.dsl.ManagedVirtualDevice
+
+
 plugins {
     kotlin("android")
     alias(libs.plugins.android.application)
@@ -7,6 +10,7 @@ plugins {
     alias(libs.plugins.compose.multiplatform)
     id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
     id("io.sentry.android.gradle") version "4.13.0"
+    alias(libs.plugins.androidx.baselineprofile)
 }
 
 android {
@@ -43,6 +47,19 @@ android {
         rootProject.projectDir.path + "shared-ui/src/commonMain/composeResources",
     )
 
+    flavorDimensions += "default"
+    productFlavors {
+        // This is only used by baseline profile
+        create("demo") {
+            dimension = "default"
+        }
+
+        create("standard") {
+            isDefault = true
+            dimension = "default"
+        }
+    }
+
     buildTypes {
         release {
             signingConfig = signingConfigs.getByName("debug")
@@ -62,8 +79,19 @@ android {
 
             manifestPlaceholders["sentryEnvironment"] = "benchmark"
             signingConfig = signingConfigs.getByName("debug")
-            isMinifyEnabled = false
-            isDebuggable = true
+        }
+    }
+
+    @Suppress("UnstableApiUsage")
+    testOptions {
+        managedDevices {
+            devices {
+                create<ManagedVirtualDevice>("api34") {
+                    device = "Pixel 6"
+                    apiLevel = 34
+                    systemImageSource = "aosp"
+                }
+            }
         }
     }
 }
@@ -110,6 +138,9 @@ dependencies {
     implementation(projects.core.analytics)
     implementation(libs.koin.android)
     implementation(projects.core.utils)
+    implementation(libs.androidx.profileinstaller)
+    "baselineProfile"(project(":androidApp:benchmark"))
+    "demoImplementation"(libs.androidx.profileinstaller)
     testImplementation(libs.koin.android)
     testImplementation(libs.koin.test)
     testImplementation(libs.kotlinx.coroutines.test)

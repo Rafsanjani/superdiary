@@ -20,7 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -56,6 +56,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -335,16 +336,19 @@ fun DiaryList(
                         )
                     }
 
-                    items(
-                        items = diaries.sortedByDescending { it.id },
-                        key = { item -> item.id.toString() },
-                    ) { diary ->
+                    val sortedItems = diaries.sortedByDescending { it.id }
+
+                    itemsIndexed(
+                        items = sortedItems,
+                        key = { _, diary -> diary.id.toString() },
+                    ) { index, diary ->
 
                         DiaryItem(
                             diary = diary,
                             selected = diary.id in selectedIds,
                             inSelectionMode = inSelectionMode,
                             modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null)
+                                .testTag("diary_item_$index")
                                 .combinedClickable(
                                     onClick = {
                                         if (inSelectionMode) {
@@ -629,7 +633,8 @@ fun DiaryItem(
         }
         // Selection mode icon
         if (inSelectionMode) {
-            val iconModifier = Modifier.padding(top = 12.dp, start = 4.dp).size(20.dp)
+            val iconModifier = Modifier
+                .padding(top = 12.dp, start = 4.dp).size(20.dp)
 
             if (selected) {
                 Icon(

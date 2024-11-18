@@ -17,11 +17,13 @@ object KoinApplication {
             factory<GoogleTokenProvider> { googleTokenProvider }
         }
         modules(
-            modules = compositeModule(
-                analytics = analytics,
-                logger = logger,
-            )
-                .plus(tokenModule),
+            modules = listOf(
+                compositeModule(
+                    analytics = analytics,
+                    logger = logger,
+                ),
+                tokenModule,
+            ),
         )
     }
 }

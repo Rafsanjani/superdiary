@@ -15,6 +15,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.zIndex
 import kotlin.math.roundToInt
@@ -50,6 +51,7 @@ fun SwipeableActionBox(
         // The action icon which will be revealed
         IconButton(
             modifier = Modifier
+                .testTag("swipeable_revealed_content")
                 .background(color = Color.Transparent)
                 .align(Alignment.CenterEnd)
                 .width(defaultSwipeableActionIconSize),

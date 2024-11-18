@@ -38,12 +38,14 @@ expect fun permissionModule(): Module
 fun compositeModule(
     analytics: AnalyticsTracker,
     logger: AggregateLogger,
-): List<Module> = listOf(
-    utilsModule(),
-    locationModule(),
-    useCaseModule(),
-    permissionModule(),
-    screenModules(),
-    platformModule(analyticsTracker = analytics, aggregateLogger = logger),
-    authModule(),
-)
+): Module = module {
+    includes(
+        utilsModule(),
+        locationModule(),
+        useCaseModule(),
+        permissionModule(),
+        screenModules(),
+        platformModule(analyticsTracker = analytics, aggregateLogger = logger),
+        authModule(),
+    )
+}

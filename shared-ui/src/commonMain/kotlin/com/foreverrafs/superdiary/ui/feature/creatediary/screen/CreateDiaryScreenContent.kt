@@ -92,6 +92,7 @@ fun CreateDiaryScreenContent(
                     ) {
                         Icon(
                             modifier = Modifier
+                                .testTag("icon_navigate_back")
                                 .clip(CircleShape),
                             imageVector = Icons.Default.ArrowBackIosNew,
                             contentDescription = stringResource(Res.string.content_description_navigate_back),

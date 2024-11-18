@@ -181,4 +181,4 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Build Android App (Release)
-        run: ./gradlew androidApp:app:assemble
+        run: ./gradlew androidApp:app:assembleStandardRelease

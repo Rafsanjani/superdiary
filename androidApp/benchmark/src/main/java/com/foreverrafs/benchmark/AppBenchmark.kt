@@ -4,6 +4,7 @@ import androidx.benchmark.macro.StartupMode
 import androidx.benchmark.macro.StartupTimingMetric
 import androidx.benchmark.macro.junit4.MacrobenchmarkRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.foreverrafs.benchmark.AppScenarios.mainNavigationItems
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -21,7 +22,7 @@ import org.junit.runner.RunWith
  * for investigating your app's performance.
  */
 @RunWith(AndroidJUnit4::class)
-class StartupBenchmark {
+class AppBenchmark {
     @get:Rule
     val benchmarkRule = MacrobenchmarkRule()
 
@@ -32,7 +33,7 @@ class StartupBenchmark {
         iterations = 5,
         startupMode = StartupMode.COLD,
     ) {
-        pressHome()
         startActivityAndWait()
+        mainNavigationItems(device)
     }
 }
