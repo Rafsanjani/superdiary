@@ -40,7 +40,7 @@ class DashboardViewModel(
     private val preference: DiaryPreference,
     private val diaryAI: DiaryAI,
     private val logger: AggregateLogger,
-    private val clock: Clock = Clock.System,
+    private val clock: Clock,
 ) : ViewModel() {
     sealed interface DashboardScreenState {
         data object Loading : DashboardScreenState

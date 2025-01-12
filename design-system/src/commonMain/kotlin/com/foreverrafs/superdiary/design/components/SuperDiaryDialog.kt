@@ -84,6 +84,7 @@ fun ConfirmDeleteDialog(
 fun ConfirmSaveDialog(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
+    onDismissRequest: () -> Unit,
 ) {
     BasicSuperDiaryDialog(
         onNegativeButton = onDismiss,
@@ -92,6 +93,7 @@ fun ConfirmSaveDialog(
         message = stringResource(Res.string.confirm_save_diary_dialog_message),
         positiveButtonText = stringResource(Res.string.confirm_save_diary_positive_button),
         negativeButtonText = stringResource(Res.string.confirm_save_diary_negative_button),
+        onDismissRequest = onDismissRequest,
     )
 }
 
@@ -99,6 +101,7 @@ fun ConfirmSaveDialog(
 fun ConfirmLogoutDialog(
     onLogout: () -> Unit,
     onDismiss: () -> Unit,
+    onDismissRequest: () -> Unit,
 ) {
     BasicSuperDiaryDialog(
         onNegativeButton = onLogout,
@@ -107,6 +110,7 @@ fun ConfirmLogoutDialog(
         message = stringResource(Res.string.confirm_logout_dialog_message),
         negativeButtonText = stringResource(Res.string.confirm_logout_dialog_confirm_button),
         positiveButtonText = stringResource(Res.string.confirm_logout_dialog_cancel_button),
+        onDismissRequest = onDismissRequest,
     )
 }
 
@@ -118,13 +122,14 @@ private fun BasicSuperDiaryDialog(
     onNegativeButton: () -> Unit,
     onPositiveButton: () -> Unit,
     positiveButtonText: String,
+    onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
     properties: DialogProperties = DialogProperties(),
 ) {
     AlertDialog(
         properties = properties,
         modifier = modifier,
-        onDismissRequest = onNegativeButton,
+        onDismissRequest = onDismissRequest,
         title = {
             Text(
                 text = title,

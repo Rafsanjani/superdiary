@@ -26,7 +26,7 @@ dependencyResolutionManagement {
 
     versionCatalogs {
         create("libs") {
-            from("io.github.rafsanjani:versions:2025.01.03")
+            from("io.github.rafsanjani:versions:2025.01.12")
             version("openaiKotlin", "4.0.0-SNAPSHOT")
             version("kotlinSerialization", "1.8.0-RC")
         }
@@ -36,7 +36,7 @@ dependencyResolutionManagement {
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 plugins {
-    id("org.jetbrains.kotlinx.kover.aggregation") version "0.9.0"
+    id("org.jetbrains.kotlinx.kover.aggregation") version "0.9.1"
 }
 
 kover {

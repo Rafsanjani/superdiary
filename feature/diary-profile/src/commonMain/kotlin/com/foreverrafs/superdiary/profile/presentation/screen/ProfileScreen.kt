@@ -17,11 +17,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -56,6 +58,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun ProfileScreen(
     onLogoutComplete: () -> Unit,
+    onNavigateBack: () -> Unit,
 ) {
     val viewModel: ProfileScreenViewModel = koinViewModel()
     val viewState by viewModel.viewState.collectAsStateWithLifecycle()
@@ -81,6 +84,7 @@ fun ProfileScreen(
         isLogoutDialogVisible = isLogoutDialogVisible,
         settings = settings,
         onUpdateSettings = viewModel::onSettingsUpdated,
+        onNavigateBack = onNavigateBack,
     )
 }
 
@@ -91,6 +95,7 @@ fun ProfileScreenContent(
     onLogout: () -> Unit,
     onLogoutDialogVisibilityChange: (Boolean) -> Unit,
     onUpdateSettings: (DiarySettings) -> Unit,
+    onNavigateBack: () -> Unit,
     isLogoutDialogVisible: Boolean,
     settings: DiarySettings,
     modifier: Modifier = Modifier,
@@ -127,6 +132,9 @@ fun ProfileScreenContent(
                         onDismiss = {
                             onLogoutDialogVisibilityChange(false)
                         },
+                        onDismissRequest = {
+                            onLogoutDialogVisibilityChange(false)
+                        },
                     )
                 }
 
@@ -136,6 +144,16 @@ fun ProfileScreenContent(
                         .padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
+                    IconButton(
+                        onClick = onNavigateBack,
+                        modifier = Modifier.align(Alignment.Start),
+                    ) {
+                        Icon(
+                            modifier = Modifier.clip(CircleShape),
+                            imageVector = Icons.Default.ArrowBackIosNew,
+                            contentDescription = "",
+                        )
+                    }
                     Spacer(modifier = Modifier.height(24.dp))
 
                     SuperDiaryImage(

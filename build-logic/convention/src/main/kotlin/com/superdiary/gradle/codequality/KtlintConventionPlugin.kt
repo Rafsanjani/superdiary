@@ -17,15 +17,11 @@ class KtlintConventionPlugin : Plugin<Project> {
                 pluginManager.apply("org.jlleitschuh.gradle.ktlint")
 
                 ktlint {
-                    version.set("1.4.1")
+                    version.set("1.5.0")
 
                     filter {
                         exclude { it.file.path.contains("${layout.buildDirectory.get()}") }
                     }
-                }
-
-                dependencies {
-                    add("ktlintRuleset", "io.nlopez.compose.rules:ktlint:0.4.13")
                 }
 
                 dependencies {

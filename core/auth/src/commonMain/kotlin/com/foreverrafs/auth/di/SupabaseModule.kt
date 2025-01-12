@@ -17,8 +17,8 @@ private fun supabaseModule() = module {
             supabaseKey = SuperDiarySecret.supabaseKey,
         ) {
             install(Auth) {
-                host = "login-verify"
-                scheme = "superdiary"
+                host = "api.nebulainnova.co.uk"
+                scheme = "https"
             }
             install(Realtime)
             install(Postgrest) {

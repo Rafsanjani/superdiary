@@ -10,14 +10,14 @@ import androidx.navigation.NavHostController
 import com.foreverrafs.superdiary.ui.feature.dashboard.DashboardViewModel
 import com.foreverrafs.superdiary.ui.navigation.AppRoute
 import kotlinx.coroutines.launch
-import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun DashboardTab(
     navController: NavHostController,
     snackbarHostState: SnackbarHostState,
 ) {
-    val screenModel: DashboardViewModel = koinInject()
+    val screenModel: DashboardViewModel = koinViewModel()
     val screenState by screenModel.state.collectAsState()
     val coroutineScope = rememberCoroutineScope()
 

@@ -1,0 +1,58 @@
+name: Bump version code
+
+# This will run every day at 11:30 PM
+on:
+  schedule:
+    - cron: '30 23 * * *'
+
+jobs:
+  increaseVersionCode:
+    name: Bump android app version code
+    runs-on: macos-14
+    env:
+      SENTRY_BASE_URL_ANDROID: ${{ secrets.SENTRY_BASE_URL_ANDROID }}
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      GOOGLE_SERVER_CLIENT_ID: ${{ secrets.GOOGLE_SERVER_CLIENT_ID }}
+      MAPS_API_KEY_ANDROID: ${{ secrets.MAPS_API_KEY_ANDROID }}
+      OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
+      STORE_FILE_BASE64: ${{ secrets.SIGNING_KEY_BASE64 }}
+      STORE_PASSWORD: ${{ secrets.SIGNING_KEYSTORE_PASSWORD }}
+      KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+      KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+      FIREBASE_DISTRIBUTION_APP_ID: ${{ secrets.FIREBASE_DISTRIBUTION_APP_ID }}
+      FIREBASE_DISTRIBUTION_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_DISTRIBUTION_SERVICE_ACCOUNT }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'adopt'
+          java-version: '17'
+
+      - name: Bump Version Code
+        run: |
+          cd androidApp/app
+          ./updateVersionCode.sh
+
+      - name: Create Pull Request with updated version code
+        id: cpr
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: Bump android version code to ${{ env.NOW }}
+          token: ${{ secrets.SECRET_GITHUB }}
+          title: Increment android app version code
+          body: Beep boop. Hey there, I have just incremented the version code of the android app. You don't have to do anything, this pull request will be merged and closed automatically.
+
+      - name: Enable Pull Request Automerge
+        if: steps.cpr.outputs.pull-request-operation == 'created'
+        uses: peter-evans/enable-pull-request-automerge@v3
+        with:
+          token: ${{ secrets.SECRET_GITHUB }}
+          labels: automated-pr
+          delete-branch: true
+          pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
+          merge-method: merge

@@ -6,7 +6,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -26,7 +25,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -35,12 +33,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -50,6 +51,11 @@ import com.foreverrafs.superdiary.ui.feature.dashboard.DashboardViewModel
 import com.foreverrafs.superdiary.ui.feature.diarylist.screen.DiaryItem
 import com.foreverrafs.superdiary.ui.format
 import com.foreverrafs.superdiary.utils.DiarySettings
+import com.valentinilk.shimmer.shimmer
+import kotlin.random.Random
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.todayIn
 import org.jetbrains.compose.resources.stringResource
 import superdiary.shared_ui.generated.resources.Res
 import superdiary.shared_ui.generated.resources.label_add_entry
@@ -77,21 +83,28 @@ fun DashboardScreenContent(
     onToggleFavorite: (diary: Diary) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    if (state !is DashboardViewModel.DashboardScreenState.Content) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator()
+    var showShimmer by remember { mutableStateOf(false) }
+    val dashboardItems = when (state) {
+        is DashboardViewModel.DashboardScreenState.Content -> {
+            showShimmer = false
+            dashboardItems(
+                state = state,
+                onAddEntry = onAddEntry,
+                onSeeAll = onSeeAll,
+                onDiaryClicked = onDiaryClick,
+                onToggleFavorite = onToggleFavorite,
+                settings = settings,
+            )
         }
-        return
-    }
 
-    val dashboardItems = dashboardItems(
-        state = state,
-        onAddEntry = onAddEntry,
-        onSeeAll = onSeeAll,
-        onDiaryClicked = onDiaryClick,
-        onToggleFavorite = onToggleFavorite,
-        settings = settings,
-    )
+        is DashboardViewModel.DashboardScreenState.Error -> TODO()
+        is DashboardViewModel.DashboardScreenState.Loading -> {
+            showShimmer = true
+            dashboardPlaceholderItems(
+                settings = settings,
+            )
+        }
+    }
 
     LazyColumn(
         modifier = modifier
@@ -195,6 +208,80 @@ private fun dashboardItems(
     }
 }
 
+@Suppress("LongMethod")
+private fun dashboardPlaceholderItems(
+    settings: DiarySettings,
+): SnapshotStateList<DashboardSection> = mutableStateListOf<DashboardSection>().apply {
+    if (settings.showAtAGlance) {
+        add(
+            DashboardSection(
+                content = {
+                    AtAGlance(
+                        modifier = Modifier.shimmer(),
+                        state = DashboardViewModel.DashboardScreenState.Content(
+                            latestEntries = emptyList(),
+                            totalEntries = 0,
+                            weeklySummary = "",
+                            currentStreak = Streak(
+                                count = 0,
+                                startDate = Clock.System.todayIn(TimeZone.UTC),
+                                endDate = Clock.System.todayIn(TimeZone.UTC),
+                            ),
+                            bestStreak = Streak(
+                                count = 0,
+                                startDate = Clock.System.todayIn(TimeZone.UTC),
+                                endDate = Clock.System.todayIn(TimeZone.UTC),
+                            ),
+                        ),
+                    )
+                },
+                id = AT_A_GLANCE_ID,
+            ),
+        )
+    }
+
+    if (settings.showWeeklySummary) {
+        add(
+            DashboardSection(
+                content = { onDismiss ->
+                    WeeklySummaryCard(
+                        modifier = Modifier
+                            .shimmer()
+                            .animateItem(fadeInSpec = null, fadeOutSpec = null)
+                            .fillMaxWidth()
+                            .heightIn(max = 200.dp, min = 150.dp),
+                        summary = "",
+                        title = "",
+                        onDismiss = onDismiss,
+                    )
+                },
+                id = WEEKLY_SUMMARY_ID,
+            ),
+        )
+    }
+
+    if (settings.showLatestEntries) {
+        add(
+            DashboardSection(
+                content = {
+                    LatestEntries(
+                        modifier = Modifier
+                            .shimmer()
+                            .animateItem(fadeInSpec = null, fadeOutSpec = null),
+                        diaries = (0..2).map {
+                            Diary(id = Random.nextLong(), entry = "")
+                        },
+                        onSeeAll = {},
+                        onDiaryClick = {},
+                        onToggleFavorite = {},
+                    )
+                },
+                id = LATEST_ENTRIES_ID,
+            ),
+        )
+    }
+}
+
 @Composable
 private fun AtAGlance(
     state: DashboardViewModel.DashboardScreenState.Content,
@@ -258,7 +345,7 @@ private fun AtAGlance(
             GlanceCard(
                 modifier = dashboardCardModifier,
                 title = stringResource(Res.string.label_glance_header_streak),
-                // Because formatted string resources doesn't cause recomposition
+                // Because formatted string resources do not cause recomposition
                 content = "$currentStreakCount days",
                 caption = streakCaption(streak = state.currentStreak),
             )
@@ -266,7 +353,7 @@ private fun AtAGlance(
             GlanceCard(
                 modifier = dashboardCardModifier,
                 title = stringResource(Res.string.label_glance_header_best_streak),
-                // Because formatted string resources doesn't cause recomposition
+                // Because formatted string resources do not cause recomposition
                 content = "$bestStreakCount days",
                 caption = streakCaption(state.bestStreak),
             )
@@ -371,6 +458,7 @@ private fun WeeklySummaryCard(
     summary: String?,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
+    title: String = stringResource(Res.string.label_glance_header_weekly_summary),
 ) {
     Card(
         modifier = modifier,
@@ -379,7 +467,6 @@ private fun WeeklySummaryCard(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
                 .padding(8.dp),
             horizontalAlignment = Alignment.Start,
         ) {
@@ -390,7 +477,7 @@ private fun WeeklySummaryCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Text(
-                    text = stringResource(Res.string.label_glance_header_weekly_summary),
+                    text = title,
                     textAlign = TextAlign.Start,
                     style = MaterialTheme.typography.headlineMedium,
                 )
@@ -402,10 +489,27 @@ private fun WeeklySummaryCard(
                 )
             }
 
+            val textScrollState = rememberScrollState()
+            val textStyle = MaterialTheme.typography.bodySmall
+
+            val textLayoutResult = rememberTextMeasurer().measure(
+                text = summary.orEmpty(),
+                style = textStyle,
+            )
+
             Text(
-                modifier = Modifier.padding(4.dp),
+                modifier = Modifier
+                    .verticalScroll(textScrollState)
+                    .fadingEdges(
+                        scrollState = textScrollState,
+                        edgeHeight = textLayoutResult.getLineBottom(0) - textLayoutResult.getLineTop(
+                            0,
+                        ),
+                    )
+                    .padding(horizontal = 4.dp)
+                    .padding(bottom = 4.dp),
                 text = summary ?: stringResource(Res.string.label_weekly_summary_error),
-                style = MaterialTheme.typography.bodySmall,
+                style = textStyle,
                 textAlign = TextAlign.Justify,
                 lineHeight = 28.sp,
             )

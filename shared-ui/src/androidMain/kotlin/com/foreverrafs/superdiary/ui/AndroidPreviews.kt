@@ -89,6 +89,7 @@ private fun ProfileScreenPreview() {
         onUpdateSettings = {},
         onLogoutDialogVisibilityChange = {},
         isLogoutDialogVisible = false,
+        onNavigateBack = {},
     )
 }
 
@@ -106,6 +107,7 @@ private fun ProfileScreenPreviewLogoutDialog() {
         isLogoutDialogVisible = true,
         settings = DiarySettings.Empty,
         onUpdateSettings = {},
+        onNavigateBack = {},
     )
 }
 

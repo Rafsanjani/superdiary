@@ -1,0 +1,70 @@
+name: Nightly Build
+
+# Publish to app distribution everyday at 12am
+on:
+    schedule:
+        -   cron: '0 0 * * *'
+
+jobs:
+    androidRelease:
+        name: Publish to Firebase App Distribution
+        runs-on: macos-14
+        env:
+            SENTRY_BASE_URL_ANDROID: ${{secrets.SENTRY_BASE_URL_ANDROID}}
+            SENTRY_AUTH_TOKEN: ${{secrets.SENTRY_AUTH_TOKEN}}
+            GOOGLE_SERVER_CLIENT_ID: ${{secrets.GOOGLE_SERVER_CLIENT_ID}}
+            MAPS_API_KEY_ANDROID: ${{secrets.MAPS_API_KEY_ANDROID}}
+            OPENAI_KEY: ${{secrets.OPENAI_KEY}}
+            STORE_FILE_BASE64: ${{secrets.SIGNING_KEY_BASE64}}
+            STORE_PASSWORD: ${{secrets.SIGNING_KEYSTORE_PASSWORD}}
+            KEY_ALIAS: ${{secrets.SIGNING_KEY_ALIAS}}
+            KEY_PASSWORD: ${{secrets.SIGNING_KEY_PASSWORD}}
+            SUPABASE_URL: ${{secrets.SUPABASE_URL}}
+            SUPABASE_KEY: ${{secrets.SUPABASE_KEY}}
+            FIREBASE_DISTRIBUTION_APP_ID: ${{secrets.FIREBASE_DISTRIBUTION_APP_ID}}
+            FIREBASE_DISTRIBUTION_SERVICE_ACCOUNT: ${{secrets.FIREBASE_DISTRIBUTION_SERVICE_ACCOUNT}}
+        steps:
+            -   uses: actions/checkout@v4
+                with:
+                    lfs: true
+            -   uses: actions/setup-java@v4
+                with:
+                    distribution: 'zulu'
+                    java-version: '17'
+
+            -   name: Setup secrets.properties
+                run: |
+                    touch secrets.properties
+                    echo "OPENAI_KEY=$OPENAI_KEY" >> secrets.properties
+                    echo "GOOGLE_SERVER_CLIENT_ID=$GOOGLE_SERVER_CLIENT_ID" >> secrets.properties
+                    echo "MAPS_API_KEY=$MAPS_API_KEY_ANDROID" >> secrets.properties
+                    echo "SUPABASE_KEY=$SUPABASE_KEY" >> secrets.properties
+                    echo "SUPABASE_URL=$SUPABASE_URL" >> secrets.properties
+
+            -   name: Decode keystore file from secrets
+                run: echo "$STORE_FILE_BASE64" | base64 --decode > keystore
+
+            -   name: Inject Signing params into gradle.properties
+                run: |
+                    echo STORE_FILE=keystore >> gradle.properties
+                    echo STORE_PASSWORD="$STORE_PASSWORD" >> gradle.properties
+                    echo KEY_PASSWORD="$KEY_PASSWORD" >> gradle.properties
+                    echo KEY_ALIAS="$KEY_ALIAS" >> gradle.properties
+
+            -   name: Generate firebase_credentials.json
+                run: |
+                    touch firebase_credentials.json
+                    echo $FIREBASE_DISTRIBUTION_SERVICE_ACCOUNT >> firebase_credentials.json
+                    cat firebase_credentials.json
+
+            -   name: Validate gradle wrapper
+                uses: gradle/actions/wrapper-validation@v4
+
+            -   name: Setup Gradle
+                uses: gradle/actions/setup-gradle@v4
+
+            -   name: Build Signed Android App (Release)
+                run: ./gradlew androidApp:app:assembleRelease
+
+            -   name: Upload to firebase
+                run: ./gradlew androidApp:app:appDistributionUploadRelease

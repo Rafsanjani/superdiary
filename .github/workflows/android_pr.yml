@@ -4,7 +4,6 @@ on:
     push:
         branches: [ main, development ]
     pull_request:
-    workflow_dispatch:
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
     cancel-in-progress: true
@@ -25,12 +24,6 @@ jobs:
 
             -   name: Setup Gradle
                 uses: gradle/actions/setup-gradle@v4
-
-            -   name: Install ktlint CLI
-                run: |
-                    curl -sSLO https://github.com/pinterest/ktlint/releases/download/1.4.1/ktlint
-                    chmod a+x ktlint
-                    sudo mv ktlint /usr/local/bin/
 
             -   name: Danger Checks
                 run: |
@@ -91,7 +84,7 @@ jobs:
             SENTRY_BASE_URL_ANDROID: ${{secrets.SENTRY_BASE_URL_ANDROID}}
             SENTRY_AUTH_TOKEN: ${{secrets.SENTRY_AUTH_TOKEN}}
         runs-on: macos-latest
-        needs: snapshot
+        needs: danger
         steps:
             -   uses: actions/checkout@v4
                 with:
@@ -110,11 +103,11 @@ jobs:
 
     jvmTest:
         name: Run JVM unit tests and generate coverage badge
+        needs: danger
         env:
             SENTRY_BASE_URL_ANDROID: ${{secrets.SENTRY_BASE_URL_ANDROID}}
             SENTRY_AUTH_TOKEN: ${{secrets.SENTRY_AUTH_TOKEN}}
         runs-on: ubuntu-latest
-        needs: snapshot
         steps:
             -   uses: actions/checkout@v4
             -   name: Set up JDK
@@ -126,32 +119,39 @@ jobs:
             -   name: Run JVM unit tests
                 run: ./gradlew testDebugUnitTest -Pkover koverXmlReport
 
-            -   name: Store code coverage into environment variable
-                if: github.ref == 'refs/heads/development'
-                run: echo "COVERAGE=$(${{github.workspace}}/gradlew -q printLineCoverage)" >> $GITHUB_ENV
-
             -   name: Add coverage Report to PR
-                id: kover
-                uses: mi-kas/kover-report@v1
+                id: jacoco
+                uses: madrapps/jacoco-report@v1.7.1
                 with:
-                    path: |
+                    paths: |
                         ${{ github.workspace }}/build/reports/kover/report.xml
                     token: ${{ secrets.GITHUB_TOKEN }}
                     update-comment: true
                     title: Code Coverage
-                    min-coverage-overall: 85
+                    min-coverage-overall: 92
                     min-coverage-changed-files: 85
-                    coverage-counter-type: LINE
 
-            -   name: Verify minimum code coverage (90%)
-                run: ./gradlew testDebugUnitTest -Pkover koverVerify
+            -   name: Store coverage info
+                run: |
+                    echo "Total coverage ${{ steps.jacoco.outputs.coverage-overall }}"
+                    echo "Changed Files coverage ${{ steps.jacoco.outputs.coverage-changed-files }}"
 
-            -   name: Post coverage violation notice on PR
-                if: failure()
-                uses: thollander/actions-comment-pull-request@v3
+            -   name: Post changed files coverage violation
+                if: ${{ steps.jacoco.outputs.coverage-changed-files  < 80.0 }}
+                uses: actions/github-script@v7
                 with:
-                    message: |
-                        ❌ **Dude, your code coverage is $${{env.COVERAGE}}% which is lower than the minimum coverage of 92%. Please go back and do the needful :wink**
+                    script: |
+                        core.setFailed('Coverage for changed files ${{steps.jacoco.outputs.coverage-changed-files}} is less than 80%!')
+
+            #            -   name: Verify minimum code coverage (90%)
+            #                run: ./gradlew testDebugUnitTest -Pkover koverVerify
+
+            -   name: Post overall project coverage violation
+                if: ${{ steps.jacoco.outputs.coverage-overall < 92.0 }}
+                uses: actions/github-script@v7
+                with:
+                    script: |
+                        core.setFailed('❌ **Dude, your code coverage is ${{ steps.jacoco.outputs.coverage-overall }} which is lower than the minimum coverage of 92%. Please go back and do the needful :wink**')
 
             -   name: Update dynamic badge gist
                 if: github.ref == 'refs/heads/development'
@@ -161,15 +161,15 @@ jobs:
                     gistID: 129c8d4608ea11b81849152dba085532
                     filename: superdiary-badge.json
                     label: coverage
-                    message: ${{env.COVERAGE}}%
-                    valColorRange: ${{env.COVERAGE}}
+                    message: ${{ steps.jacoco.outputs.coverage-overall }}
+                    valColorRange: ${{ steps.jacoco.outputs.coverage-overall }}
                     minColorRange: 0
                     maxColorRange: 100
 
     androidRelease:
         name: Build android app (release)
         runs-on: macos-14
-        needs: snapshot
+        needs: jvmTest
         env:
             SENTRY_BASE_URL_ANDROID: ${{secrets.SENTRY_BASE_URL_ANDROID}}
             SENTRY_AUTH_TOKEN: ${{secrets.SENTRY_AUTH_TOKEN}}
@@ -191,15 +191,8 @@ jobs:
                     distribution: 'zulu'
                     java-version: '17'
 
-            -   name: Setup secrets.properties
-                run: |
-                    touch secrets.properties
-                    echo "OPENAI_KEY=$OPENAI_KEY" >> secrets.properties
-                    echo "GOOGLE_SERVER_CLIENT_ID=$GOOGLE_SERVER_CLIENT_ID" >> secrets.properties
-                    echo "MAPS_API_KEY=$MAPS_API_KEY_ANDROID" >> secrets.properties
-                    echo "SUPABASE_KEY=$SUPABASE_KEY" >> secrets.properties
-                    echo "SUPABASE_URL=$SUPABASE_URL" >> secrets.properties
-                    cat secrets.properties
+            -   name: Setup secrets.properties and Configurations/Release.xcconfig
+                run: ./environments.sh
 
             -   name: Decode keystore file from secrets
                 run: echo "$STORE_FILE_BASE64" | base64 --decode > keystore
@@ -226,3 +219,42 @@ jobs:
                 uses: actions/upload-artifact@v4
                 with:
                     path: androidApp/app/build/outputs/apk/release/app-release.apk
+#
+#    iOSReleaseBuild:
+#        name: Build iOS app (Release)
+#        runs-on: macos-14
+#        #        needs: iosTest
+#        steps:
+#            -   uses: actions/checkout@v4
+#                with:
+#                    lfs: true
+#            -   uses: actions/setup-java@v4
+#                with:
+#                    distribution: 'zulu'
+#                    java-version: '17'
+#
+#            -   name: Setup secrets.properties and Configurations/Release.xcconfig
+#                run: ./environments.sh
+#
+#            -   name: Setup Gradle
+#                uses: gradle/actions/setup-gradle@v4
+#
+#            -   uses: maxim-lobanov/setup-xcode@v1
+#                with:
+#                    xcode-version: latest-stable
+#
+#            -   name: Build iOS App (Release)
+#                run: |
+#                    cd iosApp
+#                    cat Configurations/Release.xcconfig
+#                    xcodebuild \
+#                        -scheme iosApp \
+#                        -configuration Debug \
+#                        -destination 'generic/platform=iOS' \
+#                        build
+#
+#            -   name: Upload APK artifact
+#                if: success()
+#                uses: actions/upload-artifact@v4
+#                with:
+#                    path: androidApp/app/build/outputs/apk/release/app-release.apk

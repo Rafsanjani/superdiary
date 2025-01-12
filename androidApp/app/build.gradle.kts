@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
     id("io.sentry.android.gradle") version "4.14.1"
+    id("com.google.firebase.appdistribution") version "5.0.0"
 }
 
 android {
@@ -15,8 +16,8 @@ android {
         applicationId = "com.foreverrafs.superdiary"
         minSdk = 28
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 5
+        versionName = "0.0.1"
 
         val sentryBaseUrl = System.getenv("SENTRY_BASE_URL_ANDROID") ?: ""
         if (sentryBaseUrl.isEmpty()) {
@@ -53,6 +54,14 @@ android {
 
             manifestPlaceholders["sentryEnvironment"] = "production"
             manifestPlaceholders["applicationName"] = "superdiary"
+
+            val applicationId = System.getenv("FIREBASE_DISTRIBUTION_APP_ID")
+            firebaseAppDistribution {
+                appId = applicationId
+                artifactType = "APK"
+                groups = "default"
+                serviceCredentialsFile = "firebase_credentials.json"
+            }
         }
 
         debug {

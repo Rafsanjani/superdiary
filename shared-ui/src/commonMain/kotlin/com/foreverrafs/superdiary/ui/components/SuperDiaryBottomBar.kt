@@ -30,9 +30,10 @@ fun SuperDiaryBottomBar(navController: NavController) {
 
     NavigationBar {
         items.forEach { tab ->
+            val selected = currentBackStackEntry?.destination?.route == tab::class.qualifiedName
             BottomNavigationItem(
                 tab = tab,
-                selected = currentBackStackEntry?.destination?.route == tab::class.qualifiedName,
+                selected = selected,
             ) {
                 navController.navigate(tab) {
                     popUpTo(navController.graph.startDestinationId) {

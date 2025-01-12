@@ -10,7 +10,6 @@ import com.foreverrafs.superdiary.core.logging.AggregateLogger
 import com.foreverrafs.superdiary.di.platformModule
 import com.foreverrafs.superdiary.di.useCaseModule
 import com.foreverrafs.superdiary.profile.di.profileModule
-import com.foreverrafs.superdiary.profile.presentation.ProfileScreenViewModel
 import com.foreverrafs.superdiary.ui.AppViewModel
 import com.foreverrafs.superdiary.ui.feature.auth.login.LoginScreenViewModel
 import com.foreverrafs.superdiary.ui.feature.auth.register.DeeplinkContainer
@@ -30,19 +29,18 @@ import org.koin.dsl.module
 
 internal val screensModule: Module = module {
     factoryOf(::LocationPermissionManager)
-    factoryOf(::DiaryListViewModel)
-    factoryOf(::CreateDiaryViewModel)
-    factoryOf(::FavoriteViewModel)
-    factoryOf(::DashboardViewModel)
-    factoryOf(::DiaryChatViewModel)
-    factoryOf(::RegisterScreenViewModel)
-    factoryOf(::DetailsViewModel)
-    factoryOf(::LoginScreenViewModel)
-    viewModelOf(::AppViewModel)
-    viewModelOf(::PasswordResetViewModel)
     singleOf(::DeeplinkContainer)
 
-    viewModelOf(::ProfileScreenViewModel)
+    viewModelOf(::DiaryListViewModel)
+    viewModelOf(::CreateDiaryViewModel)
+    viewModelOf(::FavoriteViewModel)
+    viewModelOf(::DiaryChatViewModel)
+    viewModelOf(::RegisterScreenViewModel)
+    viewModelOf(::DetailsViewModel)
+    viewModelOf(::LoginScreenViewModel)
+    viewModelOf(::AppViewModel)
+    viewModelOf(::PasswordResetViewModel)
+    viewModelOf(::DashboardViewModel)
 }
 
 expect fun permissionModule(): Module

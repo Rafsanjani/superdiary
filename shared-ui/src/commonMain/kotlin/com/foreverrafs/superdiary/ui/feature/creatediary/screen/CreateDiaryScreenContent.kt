@@ -142,6 +142,9 @@ fun CreateDiaryScreenContent(
                     onConfirm = {
                         onSaveDiary(richTextState.toHtml())
                     },
+                    onDismissRequest = {
+                        onShowSaveDialogChange(false)
+                    },
                 )
             }
 

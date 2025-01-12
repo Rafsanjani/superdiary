@@ -41,6 +41,7 @@ class ProfileScreenSnapshotTest(
                     onLogoutDialogVisibilityChange = {},
                     onUpdateSettings = {},
                     settings = DiarySettings.Empty,
+                    onNavigateBack = {},
                 )
             }
         }
@@ -62,6 +63,7 @@ class ProfileScreenSnapshotTest(
                     onLogoutDialogVisibilityChange = {},
                     onUpdateSettings = {},
                     settings = DiarySettings.Empty,
+                    onNavigateBack = {},
                 )
             }
         }
@@ -84,6 +86,7 @@ class ProfileScreenSnapshotTest(
                     onLogoutDialogVisibilityChange = {},
                     onUpdateSettings = {},
                     settings = DiarySettings.Empty,
+                    onNavigateBack = {},
                 )
             }
         }

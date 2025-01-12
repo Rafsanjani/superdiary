@@ -78,6 +78,7 @@ class DashboardViewModelTest {
         updateDiaryUseCase = UpdateDiaryUseCase(dataSource, TestAppDispatchers),
         logger = AggregateLogger(emptyList()),
         preference = diaryPreference,
+        clock = Clock.System,
     )
 
     @Test
