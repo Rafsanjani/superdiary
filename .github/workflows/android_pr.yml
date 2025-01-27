@@ -140,8 +140,6 @@ jobs:
                     script: |
                         core.setFailed('Coverage for changed files ${{steps.jacoco.outputs.coverage-changed-files}} is less than 80%!')
 
-            #  -   name: Verify minimum code coverage (90%)
-            #      run: ./gradlew testDebugUnitTest -Pkover koverVerify
 
             -   name: Post overall coverage violation
                 if: ${{ steps.jacoco.outputs.coverage-overall  < 92.0 }}
@@ -216,42 +214,34 @@ jobs:
                 uses: actions/upload-artifact@v4
                 with:
                     path: androidApp/app/build/outputs/apk/release/app-release.apk
-#
-#    iOSReleaseBuild:
-#        name: Build iOS app (Release)
-#        runs-on: macos-14
-#        #        needs: iosTest
-#        steps:
-#            -   uses: actions/checkout@v4
-#                with:
-#                    lfs: true
-#            -   uses: actions/setup-java@v4
-#                with:
-#                    distribution: 'zulu'
-#                    java-version: '17'
-#
-#            -   name: Setup secrets.properties and Configurations/Release.xcconfig
-#                run: ./environments.sh
-#
-#            -   name: Setup Gradle
-#                uses: gradle/actions/setup-gradle@v4
-#
-#            -   uses: maxim-lobanov/setup-xcode@v1
-#                with:
-#                    xcode-version: latest-stable
-#
-#            -   name: Build iOS App (Release)
-#                run: |
-#                    cd iosApp
-#                    cat Configurations/Release.xcconfig
-#                    xcodebuild \
-#                        -scheme iosApp \
-#                        -configuration Debug \
-#                        -destination 'generic/platform=iOS' \
-#                        build
-#
-#            -   name: Upload APK artifact
-#                if: success()
-#                uses: actions/upload-artifact@v4
-#                with:
-#                    path: androidApp/app/build/outputs/apk/release/app-release.apk
+
+    iOSReleaseBuild:
+        name: Build iOS app (Release)
+        runs-on: macos-14
+        #        needs: iosTest
+        steps:
+            -   uses: actions/checkout@v4
+                with:
+                    lfs: true
+            -   uses: actions/setup-java@v4
+                with:
+                    distribution: 'zulu'
+                    java-version: '17'
+
+            -   name: Setup secrets.properties and Configurations/Release.xcconfig
+                run: ./environments.sh
+
+            -   name: Setup Gradle
+                uses: gradle/actions/setup-gradle@v4
+
+            -   name: Build iOS App (Release)
+                run: |
+                    cd iosApp
+                    cat Configurations/Release.xcconfig
+                     xcodebuild \
+                        -scheme iosApp \
+                        -sdk iphonesimulator \
+                        -configuration Release \
+                        CODE_SIGN_IDENTITY="" \
+                        CODE_SIGNING_REQUIRED=NO
+

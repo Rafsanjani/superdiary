@@ -30,8 +30,12 @@ kotlin {
     ).forEach {
         it.binaries.framework {
             baseName = "shared"
-            linkerOpts += "-lsqlite3"
-            linkerOpts += "-ld_classic"
+            linkerOpts.addAll(
+                listOf(
+                    "-lsqlite3",
+                    "-ld_classic",
+                ),
+            )
 
             export(projects.core.analytics)
             export(projects.core.logging)
@@ -147,10 +151,6 @@ android {
 
     buildFeatures {
         compose = true
-    }
-
-    composeOptions {
-        kotlinCompilerExtensionVersion = libs.versions.compose.compiler.get()
     }
 
     compileSdk = libs.versions.compileSdk.get().toInt()
